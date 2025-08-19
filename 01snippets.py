@@ -19,3 +19,8 @@ def str_or_int(item: int | str):
     
 
 str_or_int(3.9)
+
+def show_name(name: str | None = None):
+    print(name)
+    
+show_name()
