@@ -2,7 +2,7 @@ class Person:
     def __init__(self, name: str, age: int | None = None):
         self.name = name
         self.age = age
-        
+    # for more on dunder function or magic function watch magic function video by bro code    
     def __str__(self):
         return f"{self.name}" 
     
