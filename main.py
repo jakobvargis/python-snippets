@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+from fastapi import HTTPException
 from enum import Enum
+from pydantic import BaseModel
 
 
 class ModelName(str, Enum):
@@ -8,7 +10,15 @@ class ModelName(str, Enum):
     riddick = "riddick"
 
 
+class Item(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    tax: float | None = None
+
+
 app = FastAPI()
+
 
 fake_items_db = [
     {"item_id": 1, "name": "Item 1"},
@@ -25,6 +35,7 @@ fake_items_db = [
     {"item_id": 12, "name": "Item 12"},
 ]
 
+
 @app.get('/')
 async def root():
     return {'message': 'Hellow, World'}
@@ -38,6 +49,7 @@ async def read_user_me():
 @app.get('/users/{user_id}')
 async def read_user(user_id: int):
     return {'user_id': user_id}
+
 
 @app.get('/models/{model_name}')
 async def get_model(model_name: ModelName):
@@ -62,9 +74,9 @@ async def read_items(skip:int = 0, limit:int = -5):
 
 @app.get('/items/{item_id}')
 async def get_specific_item(item_id: int, q: str | None = None, short: bool = False ):
-    item = next(item for item in fake_items_db if item['item_id'] == item_id)
+    item = next((item for item in fake_items_db if item['item_id'] == item_id), None)
     if not item:
-        return {'message' : 'Item not found.'}
+        return HTTPException(status_code=404, detail="Searched item not found")
 
     # Sample of URL: http://127.0.0.1:8000/items/4?q=Hello&short=false
     # Create a copy of the item element in result so changes to result dont effect original item
@@ -81,3 +93,26 @@ async def get_specific_item(item_id: int, q: str | None = None, short: bool = Fa
         result['description'] = "This is a detailed description"
 
     return result
+
+# Create a new item
+@app.post('/items')
+async def create_item(item: Item):
+    # Calculate tax as we can access all the attributes of the model object directly:
+    item_dict = item.dict()
+    if item.tax is not None:
+        mrp = item.price + item.tax
+        item_dict.update({'mrp' : mrp})
+    return item_dict
+
+
+# update an existing record by adding a new field
+@app.put('/items/{item_id}')
+async def update_selected_item(item_id: int, item: Item, q: str | None = None):             
+    result = {'item_id': item_id, **item.dict()}
+    if not result:
+        return HTTPException(status_code=404, detail="Searched item not found.")
+
+    if q:
+        result.update({'q' : q})
+
+    return result    
