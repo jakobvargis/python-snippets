@@ -1,7 +1,7 @@
-from fastapi import FastAPI
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from enum import Enum
 from pydantic import BaseModel
+from typing import Annotated
 
 
 class ModelName(str, Enum):
@@ -116,3 +116,13 @@ async def update_selected_item(item_id: int, item: Item, q: str | None = None):
         result.update({'q' : q})
 
     return result    
+
+
+# Filter and view data in Fake_data_db where name contains '1;
+@app.get('/filteritems')
+async def read_filtered_data(q: Annotated[str | None, Query(max_length=50)] = None):
+    if q:
+        filtered_results = [item for item in fake_items_db if q.lower() in item['name'].lower()]
+        return {'items' : filtered_results}
+    else:  #if no query is given as left blank
+        return  {'items' : fake_items_db}  # returns full list of items
