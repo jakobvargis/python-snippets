@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from enum import Enum
 from pydantic import BaseModel
-from typing import Annotated
+from typing import Annotated, Dict, Any
 
 
 class ModelName(str, Enum):
@@ -95,7 +95,7 @@ async def get_specific_item(item_id: int, q: str | None = None, short: bool = Fa
     return result
 
 # Create a new item
-@app.post('/items')
+@app.post('/item_create')
 async def create_item(item: Item):
     # Calculate tax as we can access all the attributes of the model object directly:
     item_dict = item.dict()
@@ -126,3 +126,20 @@ async def read_filtered_data(q: Annotated[str | None, Query(max_length=50)] = No
         return {'items' : filtered_results}
     else:  #if no query is given as left blank
         return  {'items' : fake_items_db}  # returns full list of items
+
+
+@app.get('/get_exact')
+async def get_exact_query(q: Annotated[str | None, Query(min_length=3, max_length=50, pattern="^fixedquery$")] = None):
+    result: Dict[str, Any] = {'itemz': [{'item_id': 1, 'product': "Raspberry Pi 500"},
+                          {'item_id': 2, 'product': "Keyboard & Mouse"}
+            ]}
+    if q:
+        result.update({'q' : q})
+    
+    return result
+    
+
+@app.get('/get_as_list')
+async def get_as_list(q: Annotated[list[str] | None, Query()] = None):  #you can also declare it to receive a list of values, or said in another way, to receive multiple values
+    query_items = {'q' : q}
+    return query_items
