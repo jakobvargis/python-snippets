@@ -275,12 +275,14 @@ Create an HTML file with this:
         // Your JavaScript goes here
         let count = 0;
         const counterDisplay = document.getElementById("counter");
-        
-        document.getElementById("increment").addEventListener("click", () => {
+        const incrementBtn = document.getElementById("increment");
+
+        // Increase the counter by 1
+        incrementBtn.addEventListener('click', () => {
             count++;
             counterDisplay.textContent = count;
-        });
-        
+        });        
+
         // Add the other buttons yourself!
     </script>
 </body>
