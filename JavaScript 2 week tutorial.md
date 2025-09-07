@@ -312,6 +312,7 @@ Create an HTML file with this:
 
 If you answered yes to these, you're ready for the afternoon session where we'll dive deeper into more advanced JavaScript concepts that React needs!
 
+
 # React Crash Course - Day 1 Afternoon Session
 ## Advanced JavaScript for React (3-4 hours)
 
@@ -774,3 +775,6 @@ We'll learn React fundamentals - components, JSX, props, and state. Everything y
 3. Try to understand every line of code in today's mini project
 
 **Sleep on this thought:** JavaScript is all about manipulating data with functions, and React is just a special way to turn that data into webpage elements. You're already halfway there!
+
+
+
