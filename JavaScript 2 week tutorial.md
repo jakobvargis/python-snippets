@@ -275,14 +275,12 @@ Create an HTML file with this:
         // Your JavaScript goes here
         let count = 0;
         const counterDisplay = document.getElementById("counter");
-        const incrementBtn = document.getElementById("increment");
-
-        // Increase the counter by 1
-        incrementBtn.addEventListener('click', () => {
+        
+        document.getElementById("increment").addEventListener("click", () => {
             count++;
             counterDisplay.textContent = count;
-        });        
-
+        });
+        
         // Add the other buttons yourself!
     </script>
 </body>
@@ -778,5 +776,675 @@ We'll learn React fundamentals - components, JSX, props, and state. Everything y
 
 **Sleep on this thought:** JavaScript is all about manipulating data with functions, and React is just a special way to turn that data into webpage elements. You're already halfway there!
 
+# React Crash Course - Day 2 Morning Session
+## React Fundamentals - Your First Components (3-4 hours)
+
+### What You'll Learn This Morning
+- What React actually is (simple explanation)
+- JSX - HTML that lives inside JavaScript
+- Components - reusable pieces of UI
+- Props - passing data to components
+- Your first real React app
+
+---
+
+## 1. What is React? (20 minutes)
+
+**Simple Answer:** React is a way to create websites using JavaScript functions that return HTML-like code.
+
+### The Old Way vs React Way
+
+```javascript
+// OLD WAY: Vanilla JavaScript (what you did yesterday)
+function createUserCard(user) {
+    return `
+        <div class="user-card">
+            <h3>${user.name}</h3>
+            <p>${user.email}</p>
+        </div>
+    `;
+}
+document.getElementById('container').innerHTML = createUserCard(user);
+
+// REACT WAY: Almost the same!
+function UserCard(props) {
+    return (
+        <div className="user-card">
+            <h3>{props.name}</h3>
+            <p>{props.email}</p>
+        </div>
+    );
+}
+```
+
+**Key Insight:** React is just JavaScript functions that return HTML-like code. That's it!
+
+### Setting Up React (5 minutes)
+
+Create a new folder and add this `index.html`:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My First React App</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        // Your React code goes here
+        function App() {
+            return <h1>Hello React!</h1>;
+        }
+        
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
+```
+
+Open this file in your browser. You just created your first React app!
+
+---
+
+## 2. JSX - HTML Inside JavaScript (45 minutes)
+
+JSX looks like HTML but it's actually JavaScript. Think of it as a special way to write HTML that can include JavaScript expressions.
+
+### Basic JSX Rules
+
+```jsx
+// JSX looks like HTML but with slight differences
+function MyComponent() {
+    return (
+        <div className="container">  {/* className, not class */}
+            <h1>Hello World</h1>
+            <p>This is JSX!</p>
+        </div>
+    );
+}
+
+// Must have ONE parent element
+function WrongWay() {
+    return (
+        <h1>Title</h1>
+        <p>Paragraph</p>  // ERROR: Two elements at root level
+    );
+}
+
+function RightWay() {
+    return (
+        <div>
+            <h1>Title</h1>
+            <p>Paragraph</p>
+        </div>
+    );
+}
+
+// OR use React Fragment
+function AlsoRightWay() {
+    return (
+        <>
+            <h1>Title</h1>
+            <p>Paragraph</p>
+        </>
+    );
+}
+```
+
+### JavaScript Inside JSX
+
+```jsx
+function Greeting() {
+    const name = "Alice";
+    const age = 28;
+    const isAdmin = true;
+    
+    return (
+        <div>
+            <h1>Hello, {name}!</h1>  {/* Use {} for JavaScript */}
+            <p>You are {age} years old</p>
+            <p>Born in: {2024 - age}</p>
+            {isAdmin && <button>Admin Panel</button>}  {/* Conditional rendering */}
+        </div>
+    );
+}
+```
+
+### JSX Expressions vs Statements
+
+```jsx
+function UserProfile() {
+    const user = { name: "Bob", age: 30, isActive: true };
+    
+    return (
+        <div>
+            {/* ✅ Expressions work (they return a value) */}
+            <h1>{user.name}</h1>
+            <p>{user.isActive ? "Active" : "Inactive"}</p>
+            <p>{user.age > 18 && "Adult"}</p>
+            
+            {/* ❌ Statements don't work (they don't return a value) */}
+            {/* <p>{if (user.isActive) { return "Active" }}</p> */}
+            {/* <p>{for (let i = 0; i < 5; i++) { console.log(i) }}</p> */}
+        </div>
+    );
+}
+```
+
+### Event Handling in JSX
+
+```jsx
+function InteractiveButton() {
+    const handleClick = () => {
+        alert("Button clicked!");
+    };
+    
+    const handleMouseOver = (event) => {
+        console.log("Mouse over button!");
+        event.target.style.backgroundColor = "lightblue";
+    };
+    
+    return (
+        <div>
+            <button onClick={handleClick}>Click Me</button>
+            <button onMouseOver={handleMouseOver}>Hover Me</button>
+            
+            {/* Inline event handlers */}
+            <button onClick={() => console.log("Inline click!")}>
+                Inline Handler
+            </button>
+        </div>
+    );
+}
+```
+
+**Practice Exercise (15 minutes):**
+Create a PersonCard component that displays a person's name, age, and has a button that shows an alert with their info when clicked.
+
+---
+
+## 3. Components - Building Blocks (60 minutes)
+
+Components are like custom HTML tags that you create. Think of them as reusable templates.
+
+### Function Components (The Modern Way)
+
+```jsx
+// Simple component
+function Welcome() {
+    return <h1>Welcome to our site!</h1>;
+}
+
+// Component with logic
+function CurrentTime() {
+    const now = new Date();
+    const time = now.toLocaleTimeString();
+    
+    return (
+        <div>
+            <h2>Current Time</h2>
+            <p>{time}</p>
+        </div>
+    );
+}
+
+// Using components
+function App() {
+    return (
+        <div>
+            <Welcome />
+            <CurrentTime />
+            <Welcome />  {/* Can reuse components */}
+        </div>
+    );
+}
+```
+
+### Component Composition
+
+```jsx
+// Small, focused components
+function Header() {
+    return (
+        <header>
+            <h1>My Website</h1>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/about">About</a>
+            </nav>
+        </header>
+    );
+}
+
+function Footer() {
+    return (
+        <footer>
+            <p>&copy; 2024 My Website</p>
+        </footer>
+    );
+}
+
+function MainContent() {
+    return (
+        <main>
+            <h2>Welcome</h2>
+            <p>This is the main content area.</p>
+        </main>
+    );
+}
+
+// Compose them together
+function App() {
+    return (
+        <div>
+            <Header />
+            <MainContent />
+            <Footer />
+        </div>
+    );
+}
+```
+
+### Dynamic Components
+
+```jsx
+function ProductCard() {
+    const product = {
+        name: "iPhone 15",
+        price: 999,
+        image: "iphone.jpg",
+        inStock: true
+    };
+    
+    const handleBuyClick = () => {
+        if (product.inStock) {
+            alert(`Adding ${product.name} to cart!`);
+        } else {
+            alert("Sorry, out of stock!");
+        }
+    };
+    
+    return (
+        <div className="product-card">
+            <img src={product.image} alt={product.name} />
+            <h3>{product.name}</h3>
+            <p className="price">${product.price}</p>
+            <p className={product.inStock ? "in-stock" : "out-of-stock"}>
+                {product.inStock ? "In Stock" : "Out of Stock"}
+            </p>
+            <button 
+                onClick={handleBuyClick}
+                disabled={!product.inStock}
+            >
+                {product.inStock ? "Buy Now" : "Sold Out"}
+            </button>
+        </div>
+    );
+}
+```
+
+**Practice Exercise (20 minutes):**
+Create a ContactCard component that shows a person's name, email, phone, and has buttons for "Call" and "Email" that show alerts with the appropriate info.
+
+---
+
+## 4. Props - Passing Data to Components (75 minutes)
+
+Props (short for "properties") are how you pass data from one component to another. Think of them like function parameters.
+
+### Basic Props
+
+```jsx
+// Component that receives props
+function Greeting(props) {
+    return <h1>Hello, {props.name}!</h1>;
+}
+
+// Component that passes props
+function App() {
+    return (
+        <div>
+            <Greeting name="Alice" />
+            <Greeting name="Bob" />
+            <Greeting name="Charlie" />
+        </div>
+    );
+}
+```
+
+### Props with Destructuring (React Style)
+
+```jsx
+// Instead of props.name, props.age, etc.
+function UserCard(props) {
+    return (
+        <div>
+            <h3>{props.name}</h3>
+            <p>Age: {props.age}</p>
+            <p>Email: {props.email}</p>
+        </div>
+    );
+}
+
+// Use destructuring (cleaner)
+function UserCard({ name, age, email }) {
+    return (
+        <div>
+            <h3>{name}</h3>
+            <p>Age: {age}</p>
+            <p>Email: {email}</p>
+        </div>
+    );
+}
+
+// Using the component
+function App() {
+    return (
+        <div>
+            <UserCard 
+                name="Alice" 
+                age={28} 
+                email="alice@example.com" 
+            />
+        </div>
+    );
+}
+```
+
+### Different Types of Props
+
+```jsx
+function ProductDisplay({ name, price, tags, isOnSale, onBuyClick }) {
+    return (
+        <div className="product">
+            {/* String prop */}
+            <h3>{name}</h3>
+            
+            {/* Number prop */}
+            <p className="price">
+                ${isOnSale ? (price * 0.8).toFixed(2) : price}
+                {isOnSale && <span className="sale-badge">SALE!</span>}
+            </p>
+            
+            {/* Array prop */}
+            <div className="tags">
+                {tags.map(tag => (
+                    <span key={tag} className="tag">{tag}</span>
+                ))}
+            </div>
+            
+            {/* Boolean prop */}
+            {isOnSale && <p className="sale-text">Limited time offer!</p>}
+            
+            {/* Function prop */}
+            <button onClick={() => onBuyClick(name, price)}>
+                Buy Now
+            </button>
+        </div>
+    );
+}
+
+function App() {
+    const handlePurchase = (productName, price) => {
+        alert(`You bought ${productName} for $${price}`);
+    };
+    
+    return (
+        <ProductDisplay 
+            name="MacBook Pro"
+            price={1299}
+            tags={["laptop", "apple", "premium"]}
+            isOnSale={true}
+            onBuyClick={handlePurchase}
+        />
+    );
+}
+```
+
+### Props with Objects and Arrays
+
+```jsx
+function ContactList({ contacts }) {
+    return (
+        <div className="contact-list">
+            <h2>My Contacts</h2>
+            {contacts.map(contact => (
+                <ContactCard 
+                    key={contact.id}  // Always need key for lists
+                    contact={contact}
+                />
+            ))}
+        </div>
+    );
+}
+
+function ContactCard({ contact }) {
+    const { name, email, phone, isActive } = contact;
+    
+    return (
+        <div className={`contact-card ${isActive ? 'active' : 'inactive'}`}>
+            <h3>{name}</h3>
+            <p>📧 {email}</p>
+            <p>📞 {phone}</p>
+            <span className="status">
+                {isActive ? "Online" : "Offline"}
+            </span>
+        </div>
+    );
+}
+
+function App() {
+    const myContacts = [
+        { id: 1, name: "Alice", email: "alice@email.com", phone: "123-4567", isActive: true },
+        { id: 2, name: "Bob", email: "bob@email.com", phone: "234-5678", isActive: false },
+        { id: 3, name: "Charlie", email: "charlie@email.com", phone: "345-6789", isActive: true }
+    ];
+    
+    return <ContactList contacts={myContacts} />;
+}
+```
+
+### Default Props
+
+```jsx
+function Button({ text = "Click Me", color = "blue", size = "medium", onClick }) {
+    return (
+        <button 
+            className={`btn btn-${color} btn-${size}`}
+            onClick={onClick}
+        >
+            {text}
+        </button>
+    );
+}
+
+function App() {
+    return (
+        <div>
+            <Button />  {/* Uses all defaults */}
+            <Button text="Save" color="green" />
+            <Button text="Delete" color="red" size="small" />
+            <Button 
+                text="Custom" 
+                color="purple" 
+                onClick={() => alert("Custom button clicked!")}
+            />
+        </div>
+    );
+}
+```
+
+**Practice Exercise (25 minutes):**
+Create a blog post component system:
+1. BlogPost component that takes title, author, date, content, and tags
+2. BlogList component that displays multiple BlogPost components
+3. App component that renders a list of blog posts
+
+---
+
+## 5. Your First Real React App (30 minutes)
+
+Let's build a simple task manager that puts everything together.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Manager</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .task { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .task.completed { background-color: #f0f8f0; text-decoration: line-through; }
+        .task-header { display: flex; justify-content: space-between; align-items: center; }
+        button { padding: 5px 10px; margin-left: 5px; cursor: pointer; }
+        .delete-btn { background-color: #ff6b6b; color: white; border: none; }
+        .complete-btn { background-color: #51cf66; color: white; border: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        // Task component
+        function Task({ task, onComplete, onDelete }) {
+            const { id, title, description, completed } = task;
+            
+            return (
+                <div className={`task ${completed ? 'completed' : ''}`}>
+                    <div className="task-header">
+                        <h3>{title}</h3>
+                        <div>
+                            {!completed && (
+                                <button 
+                                    className="complete-btn"
+                                    onClick={() => onComplete(id)}
+                                >
+                                    Complete
+                                </button>
+                            )}
+                            <button 
+                                className="delete-btn"
+                                onClick={() => onDelete(id)}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    <p>{description}</p>
+                    <small>Status: {completed ? 'Completed' : 'Pending'}</small>
+                </div>
+            );
+        }
+
+        // Task list component
+        function TaskList({ tasks, onComplete, onDelete }) {
+            if (tasks.length === 0) {
+                return <p>No tasks yet. Add one above!</p>;
+            }
+            
+            return (
+                <div>
+                    {tasks.map(task => (
+                        <Task 
+                            key={task.id}
+                            task={task}
+                            onComplete={onComplete}
+                            onDelete={onDelete}
+                        />
+                    ))}
+                </div>
+            );
+        }
+
+        // Main app component
+        function App() {
+            // Sample tasks (tomorrow we'll learn how to make this dynamic)
+            const tasks = [
+                {
+                    id: 1,
+                    title: "Learn React",
+                    description: "Complete the React crash course",
+                    completed: false
+                },
+                {
+                    id: 2,
+                    title: "Build a project",
+                    description: "Create a todo app using React",
+                    completed: false
+                },
+                {
+                    id: 3,
+                    title: "Study JavaScript",
+                    description: "Review JavaScript fundamentals",
+                    completed: true
+                }
+            ];
+            
+            const handleComplete = (taskId) => {
+                alert(`Task ${taskId} completed! (We'll make this work properly tomorrow)`);
+            };
+            
+            const handleDelete = (taskId) => {
+                alert(`Task ${taskId} deleted! (We'll make this work properly tomorrow)`);
+            };
+            
+            const completedCount = tasks.filter(task => task.completed).length;
+            const totalCount = tasks.length;
+            
+            return (
+                <div>
+                    <h1>📝 Task Manager</h1>
+                    <p>Progress: {completedCount}/{totalCount} completed</p>
+                    
+                    <TaskList 
+                        tasks={tasks}
+                        onComplete={handleComplete}
+                        onDelete={handleDelete}
+                    />
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
+```
+
+---
+
+## Day 2 Morning Wrap-Up
+
+**What You Accomplished:**
+✅ Understood what React actually is (JavaScript functions returning HTML-like code)  
+✅ Learned JSX syntax and rules  
+✅ Created reusable components  
+✅ Mastered props for passing data  
+✅ Built your first real React application  
+
+**Key React Concepts Mastered:**
+- **Components**: Reusable UI pieces
+- **JSX**: HTML-like syntax in JavaScript  
+- **Props**: Data passing mechanism
+- **Event Handling**: Making components interactive
+- **Conditional Rendering**: Showing different content based on conditions
+
+**This Afternoon Preview:**
+We'll learn about **state** - how to make components remember and update data. This will make your task manager actually work (no more alert messages)!
+
+**Practice Tasks:**
+1. Add more tasks to your task manager
+2. Create a UserProfile component with props for avatar, name, bio, and social links
+3. Try to understand every line in the task manager app
+
+**You're doing great!** React components are just JavaScript functions that return JSX. Everything else builds on this foundation.
 
 
