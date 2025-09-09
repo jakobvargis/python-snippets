@@ -312,7 +312,6 @@ Create an HTML file with this:
 
 If you answered yes to these, you're ready for the afternoon session where we'll dive deeper into more advanced JavaScript concepts that React needs!
 
-
 # React Crash Course - Day 1 Afternoon Session
 ## Advanced JavaScript for React (3-4 hours)
 
@@ -775,6 +774,7 @@ We'll learn React fundamentals - components, JSX, props, and state. Everything y
 3. Try to understand every line of code in today's mini project
 
 **Sleep on this thought:** JavaScript is all about manipulating data with functions, and React is just a special way to turn that data into webpage elements. You're already halfway there!
+
 
 # React Crash Course - Day 2 Morning Session
 ## React Fundamentals - Your First Components (3-4 hours)
@@ -1446,6 +1446,7 @@ We'll learn about **state** - how to make components remember and update data. T
 3. Try to understand every line in the task manager app
 
 **You're doing great!** React components are just JavaScript functions that return JSX. Everything else builds on this foundation.
+
 
 # React Crash Course - Day 2 Afternoon Session
 ## State and Hooks - Making Components Remember (3-4 hours)
@@ -2178,4 +2179,5 @@ We'll learn **useEffect** for side effects (API calls, timers), **conditional re
 3. Build a weather app that stores favorite cities
 
 **You're crushing it!** You now understand React's core concept: **components + props + state = interactive applications**. Tomorrow we'll make your apps even more powerful!
+
 
