@@ -1447,4 +1447,735 @@ We'll learn about **state** - how to make components remember and update data. T
 
 **You're doing great!** React components are just JavaScript functions that return JSX. Everything else builds on this foundation.
 
+# React Crash Course - Day 2 Afternoon Session
+## State and Hooks - Making Components Remember (3-4 hours)
+
+### What You'll Learn This Afternoon
+- State - how components remember and update data
+- useState Hook - React's memory system
+- Event handling with state changes
+- Making your task manager actually work!
+- Building interactive forms
+
+---
+
+## 1. Understanding State - Component Memory (30 minutes)
+
+**Simple Explanation:** State is like a component's memory. It remembers information and can change that information over time.
+
+### The Problem with Regular Variables
+
+```jsx
+function Counter() {
+    let count = 0; // This won't work as expected!
+    
+    const increment = () => {
+        count = count + 1;
+        console.log(count); // This updates...
+        // But the component doesn't re-render, so UI stays the same!
+    };
+    
+    return (
+        <div>
+            <h2>Count: {count}</h2>
+            <button onClick={increment}>+1</button>
+        </div>
+    );
+}
+```
+
+**Problem:** Regular variables don't trigger component re-renders. The UI won't update!
+
+### The Solution: useState Hook
+
+```jsx
+import { useState } from 'react';
+
+function Counter() {
+    // useState returns [currentValue, functionToUpdateValue]
+    const [count, setCount] = useState(0); // Start with 0
+    
+    const increment = () => {
+        setCount(count + 1); // This triggers a re-render!
+    };
+    
+    return (
+        <div>
+            <h2>Count: {count}</h2>  {/* This will update! */}
+            <button onClick={increment}>+1</button>
+        </div>
+    );
+}
+```
+
+### useState Basics
+
+```jsx
+function StateExamples() {
+    // Different types of state
+    const [name, setName] = useState(""); // String
+    const [age, setAge] = useState(0); // Number  
+    const [isVisible, setIsVisible] = useState(true); // Boolean
+    const [items, setItems] = useState([]); // Array
+    const [user, setUser] = useState({ name: "", email: "" }); // Object
+    
+    return (
+        <div>
+            <p>Name: {name}</p>
+            <p>Age: {age}</p>
+            <p>Visible: {isVisible ? "Yes" : "No"}</p>
+            <p>Items count: {items.length}</p>
+            <p>User: {user.name}</p>
+        </div>
+    );
+}
+```
+
+**Practice Exercise (10 minutes):**
+Create a simple toggle button that switches between "ON" and "OFF" using useState.
+
+---
+
+## 2. useState in Action - Interactive Components (45 minutes)
+
+### Simple Interactive Examples
+
+```jsx
+function LikeButton() {
+    const [likes, setLikes] = useState(0);
+    const [isLiked, setIsLiked] = useState(false);
+    
+    const handleLike = () => {
+        if (isLiked) {
+            setLikes(likes - 1);
+            setIsLiked(false);
+        } else {
+            setLikes(likes + 1);
+            setIsLiked(true);
+        }
+    };
+    
+    return (
+        <button 
+            onClick={handleLike}
+            style={{ 
+                backgroundColor: isLiked ? '#ff6b6b' : '#f1f3f4',
+                color: isLiked ? 'white' : 'black'
+            }}
+        >
+            {isLiked ? '❤️ Liked' : '🤍 Like'} ({likes})
+        </button>
+    );
+}
+
+function TextInput() {
+    const [text, setText] = useState("");
+    
+    return (
+        <div>
+            <input 
+                type="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Type something..."
+            />
+            <p>You typed: {text}</p>
+            <p>Character count: {text.length}</p>
+        </div>
+    );
+}
+```
+
+### Working with Arrays in State
+
+```jsx
+function ShoppingList() {
+    const [items, setItems] = useState(['Milk', 'Bread']);
+    const [newItem, setNewItem] = useState('');
+    
+    const addItem = () => {
+        if (newItem.trim() !== '') {
+            // Create new array with spread operator (don't modify original)
+            setItems([...items, newItem]);
+            setNewItem(''); // Clear input
+        }
+    };
+    
+    const removeItem = (indexToRemove) => {
+        // Filter out the item at the specified index
+        setItems(items.filter((item, index) => index !== indexToRemove));
+    };
+    
+    return (
+        <div>
+            <h3>Shopping List</h3>
+            
+            <div>
+                <input 
+                    value={newItem}
+                    onChange={(e) => setNewItem(e.target.value)}
+                    placeholder="Add new item..."
+                />
+                <button onClick={addItem}>Add</button>
+            </div>
+            
+            <ul>
+                {items.map((item, index) => (
+                    <li key={index}>
+                        {item}
+                        <button onClick={() => removeItem(index)}>Remove</button>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+```
+
+### Working with Objects in State
+
+```jsx
+function UserProfile() {
+    const [user, setUser] = useState({
+        name: '',
+        email: '',
+        age: ''
+    });
+    
+    const updateUser = (field, value) => {
+        // Use spread operator to create new object
+        setUser({
+            ...user,
+            [field]: value // Dynamic property name
+        });
+    };
+    
+    const resetUser = () => {
+        setUser({ name: '', email: '', age: '' });
+    };
+    
+    return (
+        <div>
+            <h3>User Profile</h3>
+            
+            <input 
+                placeholder="Name"
+                value={user.name}
+                onChange={(e) => updateUser('name', e.target.value)}
+            />
+            
+            <input 
+                placeholder="Email"
+                value={user.email}
+                onChange={(e) => updateUser('email', e.target.value)}
+            />
+            
+            <input 
+                placeholder="Age"
+                type="number"
+                value={user.age}
+                onChange={(e) => updateUser('age', e.target.value)}
+            />
+            
+            <button onClick={resetUser}>Reset</button>
+            
+            <div>
+                <h4>Preview:</h4>
+                <p>Name: {user.name}</p>
+                <p>Email: {user.email}</p>
+                <p>Age: {user.age}</p>
+            </div>
+        </div>
+    );
+}
+```
+
+**Practice Exercise (15 minutes):**
+Create a color picker component that shows a preview of the selected color and allows you to add colors to a favorites list.
+
+---
+
+## 3. Making the Task Manager Actually Work (60 minutes)
+
+Let's upgrade your morning task manager to use real state!
+
+```jsx
+function TaskManager() {
+    const [tasks, setTasks] = useState([
+        {
+            id: 1,
+            title: "Learn React",
+            description: "Complete the React crash course",
+            completed: false
+        },
+        {
+            id: 2,
+            title: "Build a project",
+            description: "Create a todo app using React",
+            completed: false
+        }
+    ]);
+    
+    const [newTask, setNewTask] = useState({
+        title: '',
+        description: ''
+    });
+    
+    // Add new task
+    const addTask = () => {
+        if (newTask.title.trim() !== '') {
+            const task = {
+                id: Date.now(), // Simple ID generation
+                title: newTask.title,
+                description: newTask.description,
+                completed: false
+            };
+            
+            setTasks([...tasks, task]);
+            setNewTask({ title: '', description: '' }); // Reset form
+        }
+    };
+    
+    // Toggle task completion
+    const toggleTask = (taskId) => {
+        setTasks(tasks.map(task => 
+            task.id === taskId 
+                ? { ...task, completed: !task.completed }
+                : task
+        ));
+    };
+    
+    // Delete task
+    const deleteTask = (taskId) => {
+        setTasks(tasks.filter(task => task.id !== taskId));
+    };
+    
+    // Statistics
+    const completedCount = tasks.filter(task => task.completed).length;
+    const totalCount = tasks.length;
+    
+    return (
+        <div>
+            <h1>📝 Task Manager (Now with State!)</h1>
+            
+            {/* Statistics */}
+            <div style={{ backgroundColor: '#f0f0f0', padding: '10px', margin: '10px 0' }}>
+                <p>Progress: {completedCount}/{totalCount} completed</p>
+                <div style={{ 
+                    width: '100%', 
+                    backgroundColor: '#ddd', 
+                    borderRadius: '10px',
+                    height: '20px'
+                }}>
+                    <div style={{
+                        width: `${totalCount > 0 ? (completedCount/totalCount) * 100 : 0}%`,
+                        backgroundColor: '#4CAF50',
+                        height: '20px',
+                        borderRadius: '10px',
+                        transition: 'width 0.3s'
+                    }}></div>
+                </div>
+            </div>
+            
+            {/* Add new task form */}
+            <div style={{ border: '1px solid #ddd', padding: '15px', margin: '10px 0' }}>
+                <h3>Add New Task</h3>
+                <input 
+                    placeholder="Task title"
+                    value={newTask.title}
+                    onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                />
+                <br /><br />
+                <textarea 
+                    placeholder="Task description"
+                    value={newTask.description}
+                    onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+                    rows="3"
+                    style={{ width: '100%' }}
+                />
+                <br /><br />
+                <button onClick={addTask} style={{ backgroundColor: '#4CAF50', color: 'white', padding: '10px 20px' }}>
+                    Add Task
+                </button>
+            </div>
+            
+            {/* Task list */}
+            <TaskList 
+                tasks={tasks}
+                onToggle={toggleTask}
+                onDelete={deleteTask}
+            />
+        </div>
+    );
+}
+
+// Updated Task component
+function Task({ task, onToggle, onDelete }) {
+    const { id, title, description, completed } = task;
+    
+    return (
+        <div style={{
+            border: '1px solid #ddd',
+            padding: '15px',
+            margin: '10px 0',
+            borderRadius: '5px',
+            backgroundColor: completed ? '#f0f8f0' : 'white',
+            textDecoration: completed ? 'line-through' : 'none'
+        }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: '0 0 10px 0' }}>{title}</h3>
+                <div>
+                    <button 
+                        onClick={() => onToggle(id)}
+                        style={{
+                            backgroundColor: completed ? '#ff9800' : '#4CAF50',
+                            color: 'white',
+                            border: 'none',
+                            padding: '5px 10px',
+                            marginLeft: '5px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        {completed ? 'Undo' : 'Complete'}
+                    </button>
+                    <button 
+                        onClick={() => onDelete(id)}
+                        style={{
+                            backgroundColor: '#f44336',
+                            color: 'white',
+                            border: 'none',
+                            padding: '5px 10px',
+                            marginLeft: '5px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+            <p>{description}</p>
+            <small>Status: {completed ? 'Completed ✅' : 'Pending ⏳'}</small>
+        </div>
+    );
+}
+
+// Updated TaskList component
+function TaskList({ tasks, onToggle, onDelete }) {
+    if (tasks.length === 0) {
+        return <p style={{ textAlign: 'center', color: '#666' }}>No tasks yet. Add one above!</p>;
+    }
+    
+    return (
+        <div>
+            <h3>Your Tasks ({tasks.length})</h3>
+            {tasks.map(task => (
+                <Task 
+                    key={task.id}
+                    task={task}
+                    onToggle={onToggle}
+                    onDelete={onDelete}
+                />
+            ))}
+        </div>
+    );
+}
+```
+
+**Practice Exercise (20 minutes):**
+Add these features to your task manager:
+1. Edit task functionality
+2. Filter tasks by completed/pending
+3. Clear all completed tasks button
+
+---
+
+## 4. Advanced useState Patterns (45 minutes)
+
+### Functional State Updates
+
+```jsx
+function Counter() {
+    const [count, setCount] = useState(0);
+    
+    // Problem: Multiple rapid clicks might not work correctly
+    const badIncrement = () => {
+        setCount(count + 1);
+        setCount(count + 1); // Might not work as expected!
+    };
+    
+    // Solution: Use functional update
+    const goodIncrement = () => {
+        setCount(prevCount => prevCount + 1);
+        setCount(prevCount => prevCount + 1); // This works correctly!
+    };
+    
+    return (
+        <div>
+            <p>Count: {count}</p>
+            <button onClick={goodIncrement}>+2</button>
+        </div>
+    );
+}
+```
+
+### State with Complex Logic
+
+```jsx
+function ShoppingCart() {
+    const [cart, setCart] = useState([]);
+    
+    const addToCart = (product) => {
+        setCart(prevCart => {
+            // Check if product already exists
+            const existingItem = prevCart.find(item => item.id === product.id);
+            
+            if (existingItem) {
+                // Update quantity
+                return prevCart.map(item =>
+                    item.id === product.id
+                        ? { ...item, quantity: item.quantity + 1 }
+                        : item
+                );
+            } else {
+                // Add new item
+                return [...prevCart, { ...product, quantity: 1 }];
+            }
+        });
+    };
+    
+    const removeFromCart = (productId) => {
+        setCart(prevCart => prevCart.filter(item => item.id !== productId));
+    };
+    
+    const updateQuantity = (productId, newQuantity) => {
+        if (newQuantity <= 0) {
+            removeFromCart(productId);
+        } else {
+            setCart(prevCart =>
+                prevCart.map(item =>
+                    item.id === productId
+                        ? { ...item, quantity: newQuantity }
+                        : item
+                )
+            );
+        }
+    };
+    
+    const getTotalPrice = () => {
+        return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    };
+    
+    return (
+        <div>
+            <h3>Shopping Cart</h3>
+            {cart.length === 0 ? (
+                <p>Cart is empty</p>
+            ) : (
+                <>
+                    {cart.map(item => (
+                        <div key={item.id} style={{ border: '1px solid #ddd', padding: '10px', margin: '5px' }}>
+                            <h4>{item.name}</h4>
+                            <p>Price: ${item.price}</p>
+                            <p>
+                                Quantity: 
+                                <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>-</button>
+                                {item.quantity}
+                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                            </p>
+                            <button onClick={() => removeFromCart(item.id)}>Remove</button>
+                        </div>
+                    ))}
+                    <h3>Total: ${getTotalPrice().toFixed(2)}</h3>
+                </>
+            )}
+            
+            {/* Sample products */}
+            <h4>Products:</h4>
+            <button onClick={() => addToCart({ id: 1, name: 'iPhone', price: 999 })}>
+                Add iPhone
+            </button>
+            <button onClick={() => addToCart({ id: 2, name: 'iPad', price: 599 })}>
+                Add iPad
+            </button>
+        </div>
+    );
+}
+```
+
+### Custom State Logic with useReducer Preview
+
+```jsx
+function TodoApp() {
+    // For complex state logic, you might see this pattern (useReducer)
+    // We'll cover this later, but good to know it exists
+    const [todos, setTodos] = useState([]);
+    
+    const todoActions = {
+        add: (text) => setTodos(prev => [...prev, { id: Date.now(), text, completed: false }]),
+        toggle: (id) => setTodos(prev => prev.map(todo => 
+            todo.id === id ? { ...todo, completed: !todo.completed } : todo
+        )),
+        delete: (id) => setTodos(prev => prev.filter(todo => todo.id !== id)),
+        clear: () => setTodos([])
+    };
+    
+    return (
+        <div>
+            {/* Implementation here */}
+            <p>This is a preview of more advanced patterns!</p>
+        </div>
+    );
+}
+```
+
+---
+
+## 5. Putting It All Together - Complete App (30 minutes)
+
+Let's create a complete contact manager app:
+
+```jsx
+function ContactManager() {
+    const [contacts, setContacts] = useState([]);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        category: 'personal'
+    });
+    const [filter, setFilter] = useState('all');
+    
+    const addContact = () => {
+        if (formData.name && formData.email) {
+            const newContact = {
+                id: Date.now(),
+                ...formData,
+                createdAt: new Date().toLocaleDateString()
+            };
+            setContacts([...contacts, newContact]);
+            setFormData({ name: '', email: '', phone: '', category: 'personal' });
+        }
+    };
+    
+    const deleteContact = (id) => {
+        setContacts(contacts.filter(contact => contact.id !== id));
+    };
+    
+    const filteredContacts = contacts.filter(contact => {
+        if (filter === 'all') return true;
+        return contact.category === filter;
+    });
+    
+    return (
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+            <h1>📞 Contact Manager</h1>
+            
+            {/* Add Contact Form */}
+            <div style={{ border: '2px solid #ddd', padding: '20px', marginBottom: '20px' }}>
+                <h3>Add New Contact</h3>
+                <input 
+                    placeholder="Name *"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                />
+                <input 
+                    placeholder="Email *"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                />
+                <input 
+                    placeholder="Phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                />
+                <select 
+                    value={formData.category}
+                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                >
+                    <option value="personal">Personal</option>
+                    <option value="work">Work</option>
+                    <option value="family">Family</option>
+                </select>
+                <button onClick={addContact}>Add Contact</button>
+            </div>
+            
+            {/* Filter */}
+            <div style={{ marginBottom: '20px' }}>
+                <label>Filter: </label>
+                <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+                    <option value="all">All ({contacts.length})</option>
+                    <option value="personal">Personal</option>
+                    <option value="work">Work</option>
+                    <option value="family">Family</option>
+                </select>
+            </div>
+            
+            {/* Contact List */}
+            <div>
+                <h3>Contacts ({filteredContacts.length})</h3>
+                {filteredContacts.length === 0 ? (
+                    <p>No contacts found.</p>
+                ) : (
+                    filteredContacts.map(contact => (
+                        <div key={contact.id} style={{
+                            border: '1px solid #ddd',
+                            padding: '15px',
+                            margin: '10px 0',
+                            borderRadius: '5px'
+                        }}>
+                            <h4>{contact.name}</h4>
+                            <p>📧 {contact.email}</p>
+                            {contact.phone && <p>📞 {contact.phone}</p>}
+                            <span style={{
+                                background: '#e1f5fe',
+                                padding: '2px 8px',
+                                borderRadius: '12px',
+                                fontSize: '12px'
+                            }}>
+                                {contact.category}
+                            </span>
+                            <p><small>Added: {contact.createdAt}</small></p>
+                            <button 
+                                onClick={() => deleteContact(contact.id)}
+                                style={{ backgroundColor: '#f44336', color: 'white' }}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## Day 2 Afternoon Wrap-Up
+
+**What You Mastered:**
+✅ **useState Hook** - Component memory system  
+✅ **State Updates** - Making components interactive  
+✅ **Array State** - Managing lists of data  
+✅ **Object State** - Handling complex data structures  
+✅ **Forms** - Controlled components and user input  
+✅ **Real Applications** - Task manager and contact manager  
+
+**Key State Principles:**
+- **State triggers re-renders** - When state changes, component updates
+- **Immutability** - Always create new arrays/objects, don't modify existing ones
+- **Functional updates** - Use `prevState => newState` for reliable updates
+- **Single source of truth** - State should live in one place
+
+**Tomorrow Preview:**
+We'll learn **useEffect** for side effects (API calls, timers), **conditional rendering patterns**, and **React Router** for navigation between pages.
+
+**Practice Tonight:**
+1. Add search functionality to your contact manager
+2. Create a simple calculator using useState
+3. Build a weather app that stores favorite cities
+
+**You're crushing it!** You now understand React's core concept: **components + props + state = interactive applications**. Tomorrow we'll make your apps even more powerful!
 
