@@ -1,0 +1,82 @@
+<templateSet group="ReactReduxRouterSnippets">
+
+  <!-- ============ React Components ============ -->
+
+  <template name="rafce" value="import React from 'react';&#10;&#10;const $COMPONENT$ = () =&gt; {&#10;  return (&#10;    &lt;&gt;$END$&lt;/&gt;&#10;  );&#10;};&#10;&#10;export default $COMPONENT$;" description="React Arrow Function Component Export" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/><option name="TypeScript" value="true"/></context>
+  </template>
+
+  <template name="rfc" value="import React from 'react';&#10;&#10;function $COMPONENT$() {&#10;  return (&#10;    &lt;&gt;$END$&lt;/&gt;&#10;  );&#10;}&#10;&#10;export default $COMPONENT$;" description="React Function Component" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/><option name="TypeScript" value="true"/></context>
+  </template>
+
+  <template name="rcc" value="import React, { Component } from 'react';&#10;&#10;class $COMPONENT$ extends Component {&#10;  render() {&#10;    return (&#10;      &lt;&gt;$END$&lt;/&gt;&#10;    );&#10;  }&#10;}&#10;&#10;export default $COMPONENT$;" description="React Class Component" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/><option name="TypeScript" value="true"/></context>
+  </template>
+
+  <template name="rafc" value="const $COMPONENT$ = () =&gt; {&#10;  return (&#10;    &lt;&gt;$END$&lt;/&gt;&#10;  );&#10;};" description="React Arrow Function Component (no export)" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/><option name="TypeScript" value="true"/></context>
+  </template>
+
+
+  <!-- ============ React Hooks ============ -->
+
+  <template name="usf" value="const [$STATE$, set$CAPITALIZED_STATE$] = React.useState($INIT$);" description="React useState Hook" toReformat="false" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/></context>
+  </template>
+
+  <template name="uef" value="React.useEffect(() =&gt; {&#10;  $END$&#10;}, [$DEPS$]);" description="React useEffect Hook" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/></context>
+  </template>
+
+  <template name="uc" value="const $VALUE$ = React.useContext($CONTEXT$);" description="React useContext Hook" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/></context>
+  </template>
+
+  <template name="urf" value="const $REF$ = React.useRef(null);" description="React useRef Hook" toReformat="false" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/></context>
+  </template>
+
+
+  <!-- ============ Redux Toolkit ============ -->
+
+  <template name="rxslice" value="import { createSlice } from '@reduxjs/toolkit';&#10;&#10;const initialState = {&#10;  $STATE$: $VALUE$&#10;};&#10;&#10;const $SLICE$Slice = createSlice({&#10;  name: '$SLICE$',&#10;  initialState,&#10;  reducers: {&#10;    $ACTION$: (state, action) =&gt; {&#10;      state.$STATE$ = action.payload;&#10;    }&#10;  }&#10;}&#10;);&#10;&#10;export const { $ACTION$ } = $SLICE$Slice.actions;&#10;export default $SLICE$Slice.reducer;" description="Redux Toolkit Slice" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_FILE" value="true"/></context>
+  </template>
+
+  <template name="rxstore" value="import { configureStore } from '@reduxjs/toolkit';&#10;import $REDUCER$ from './$REDUCER$';&#10;&#10;export const store = configureStore({&#10;  reducer: {&#10;    $REDUCER$: $REDUCER$&#10;  }&#10;});" description="Redux Store Setup" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_FILE" value="true"/></context>
+  </template>
+
+  <template name="rxdispatch" value="const dispatch = useDispatch();&#10;dispatch($ACTION$($PAYLOAD$));" description="Redux useDispatch" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/></context>
+  </template>
+
+  <template name="rxselector" value="const $VALUE$ = useSelector((state) =&gt; state.$SLICE$.$STATE$);" description="Redux useSelector" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/></context>
+  </template>
+
+
+  <!-- ============ React Router ============ -->
+
+  <!-- Router DOM Import -->
+  <template name="rrd" value="import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';" description="React Router DOM Import" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_FILE" value="true"/></context>
+  </template>
+
+  <!-- Router Setup -->
+  <template name="rro" value="&lt;Router&gt;&#10;  &lt;Routes&gt;&#10;    &lt;Route path=&quot;/&quot; element={&lt;$COMPONENT$ /&gt;} /&gt;&#10;  &lt;/Routes&gt;&#10;&lt;/Router&gt;" description="React Router Setup" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/></context>
+  </template>
+
+  <!-- Link -->
+  <template name="rrl" value="&lt;Link to=&quot;/$PATH$&quot;&gt;$TEXT$&lt;/Link&gt;" description="React Router Link" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/></context>
+  </template>
+
+  <!-- NavLink -->
+  <template name="rrnl" value="&lt;NavLink to=&quot;/$PATH$&quot; className={({ isActive }) =&gt; isActive ? 'active' : ''}&gt;$TEXT$&lt;/NavLink&gt;" description="React Router NavLink" toReformat="true" toShortenFQNames="true">
+    <context><option name="JS_STATEMENT" value="true"/></context>
+  </template>
+
+</templateSet>
