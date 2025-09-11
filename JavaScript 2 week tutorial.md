@@ -2181,3 +2181,711 @@ We'll learn **useEffect** for side effects (API calls, timers), **conditional re
 **You're crushing it!** You now understand React's core concept: **components + props + state = interactive applications**. Tomorrow we'll make your apps even more powerful!
 
 
+# React Crash Course - Day 3 Morning Session
+## useEffect and Side Effects - Making Things Happen (3-4 hours)
+
+### What You'll Learn This Morning
+- useEffect Hook - React's way to handle "side effects"
+- Fetching data from APIs
+- Timers, intervals, and cleanup
+- Component lifecycle in functional components
+- Building a real weather app with API calls
+
+---
+
+## 1. What are Side Effects? (20 minutes)
+
+**Simple Explanation:** Side effects are things that happen "on the side" of rendering your component - like fetching data, setting timers, or updating the document title.
+
+### Examples of Side Effects
+
+```jsx
+function ProblemComponent() {
+    // ❌ DON'T do these directly in component body
+    document.title = "New Title"; // Changes browser tab title
+    fetch('/api/data'); // Makes API call
+    setInterval(() => console.log('tick'), 1000); // Sets timer
+    
+    return <div>Hello</div>; // This runs every time component renders!
+}
+```
+
+**Problem:** These run every time the component renders, which could be many times per second!
+
+### The Solution: useEffect
+
+```jsx
+import { useEffect, useState } from 'react';
+
+function CorrectComponent() {
+    const [data, setData] = useState(null);
+    
+    // ✅ DO side effects inside useEffect
+    useEffect(() => {
+        document.title = "New Title";
+        fetch('/api/data')
+            .then(response => response.json())
+            .then(data => setData(data));
+    }, []); // The empty array means "run only once"
+    
+    return <div>Hello</div>;
+}
+```
+
+**Think of useEffect as:** "Do this effect after the component renders"
+
+---
+
+## 2. useEffect Basics - The Three Patterns (45 minutes)
+
+### Pattern 1: Run Once (Like ComponentDidMount)
+
+```jsx
+function UserProfile() {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    
+    useEffect(() => {
+        console.log("Component mounted - this runs once");
+        
+        // Simulate API call
+        setTimeout(() => {
+            setUser({ name: "Alice", email: "alice@example.com" });
+            setLoading(false);
+        }, 2000);
+        
+    }, []); // Empty array = run once after first render
+    
+    if (loading) {
+        return <div>Loading user profile...</div>;
+    }
+    
+    return (
+        <div>
+            <h2>Welcome, {user.name}!</h2>
+            <p>Email: {user.email}</p>
+        </div>
+    );
+}
+```
+
+### Pattern 2: Run on Every Render
+
+```jsx
+function Counter() {
+    const [count, setCount] = useState(0);
+    
+    useEffect(() => {
+        console.log("Component rendered, count is:", count);
+        document.title = `Count: ${count}`;
+    }); // No array = runs after every render
+    
+    return (
+        <div>
+            <p>Count: {count}</p>
+            <button onClick={() => setCount(count + 1)}>+1</button>
+        </div>
+    );
+}
+```
+
+### Pattern 3: Run When Specific Values Change
+
+```jsx
+function SearchResults() {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [results, setResults] = useState([]);
+    
+    useEffect(() => {
+        if (searchTerm) {
+            console.log("Searching for:", searchTerm);
+            // Simulate search API call
+            setTimeout(() => {
+                setResults([
+                    `Result 1 for ${searchTerm}`,
+                    `Result 2 for ${searchTerm}`
+                ]);
+            }, 1000);
+        }
+    }, [searchTerm]); // Only run when searchTerm changes
+    
+    return (
+        <div>
+            <input 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search..."
+            />
+            <ul>
+                {results.map((result, index) => (
+                    <li key={index}>{result}</li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+```
+
+**Practice Exercise (15 minutes):**
+Create a component that shows the current time and updates every second using useEffect.
+
+---
+
+## 3. Fetching Data from APIs (60 minutes)
+
+### Basic API Fetching Pattern
+
+```jsx
+function PostList() {
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
+                
+                const postsData = await response.json();
+                setPosts(postsData.slice(0, 5)); // Get first 5 posts
+                setError(null);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchPosts();
+    }, []);
+    
+    if (loading) return <div>Loading posts...</div>;
+    if (error) return <div>Error: {error}</div>;
+    
+    return (
+        <div>
+            <h2>Latest Posts</h2>
+            {posts.map(post => (
+                <div key={post.id} style={{
+                    border: '1px solid #ddd',
+                    padding: '15px',
+                    margin: '10px 0'
+                }}>
+                    <h3>{post.title}</h3>
+                    <p>{post.body}</p>
+                </div>
+            ))}
+        </div>
+    );
+}
+```
+
+### User Detail Fetcher with Dynamic ID
+
+```jsx
+function UserDetail({ userId }) {
+    const [user, setUser] = useState(null);
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    
+    useEffect(() => {
+        const fetchUserData = async () => {
+            setLoading(true);
+            try {
+                // Fetch user and their posts simultaneously
+                const [userResponse, postsResponse] = await Promise.all([
+                    fetch(`https://jsonplaceholder.typicode.com/users/${userId}`),
+                    fetch(`https://jsonplaceholder.typicode.com/users/${userId}/posts`)
+                ]);
+                
+                const userData = await userResponse.json();
+                const postsData = await postsResponse.json();
+                
+                setUser(userData);
+                setPosts(postsData);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        if (userId) {
+            fetchUserData();
+        }
+    }, [userId]); // Re-fetch when userId changes
+    
+    if (loading) return <div>Loading user...</div>;
+    if (!user) return <div>User not found</div>;
+    
+    return (
+        <div>
+            <h2>{user.name}</h2>
+            <p>Email: {user.email}</p>
+            <p>Phone: {user.phone}</p>
+            <p>Website: {user.website}</p>
+            
+            <h3>Posts by {user.name} ({posts.length})</h3>
+            {posts.map(post => (
+                <div key={post.id} style={{ marginBottom: '15px' }}>
+                    <h4>{post.title}</h4>
+                    <p>{post.body}</p>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// Usage component
+function UserApp() {
+    const [selectedUserId, setSelectedUserId] = useState(1);
+    
+    return (
+        <div>
+            <div>
+                <label>Select User: </label>
+                <select 
+                    value={selectedUserId} 
+                    onChange={(e) => setSelectedUserId(Number(e.target.value))}
+                >
+                    {[1,2,3,4,5].map(id => (
+                        <option key={id} value={id}>User {id}</option>
+                    ))}
+                </select>
+            </div>
+            
+            <UserDetail userId={selectedUserId} />
+        </div>
+    );
+}
+```
+
+### Custom Hook for API Fetching
+
+```jsx
+// Custom hook to reuse fetch logic
+function useApi(url) {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                setData(result);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        if (url) {
+            fetchData();
+        }
+    }, [url]);
+    
+    return { data, loading, error };
+}
+
+// Using the custom hook
+function SimplePostList() {
+    const { data: posts, loading, error } = useApi('https://jsonplaceholder.typicode.com/posts');
+    
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
+    
+    return (
+        <div>
+            <h2>Posts ({posts?.length})</h2>
+            {posts?.slice(0, 3).map(post => (
+                <div key={post.id}>
+                    <h3>{post.title}</h3>
+                    <p>{post.body}</p>
+                </div>
+            ))}
+        </div>
+    );
+}
+```
+
+**Practice Exercise (20 minutes):**
+Create a component that fetches and displays a list of users, and when you click on a user, it shows their details.
+
+---
+
+## 4. Timers, Intervals, and Cleanup (45 minutes)
+
+### Setting Up and Cleaning Up Timers
+
+```jsx
+function Timer() {
+    const [seconds, setSeconds] = useState(0);
+    const [isRunning, setIsRunning] = useState(false);
+    
+    useEffect(() => {
+        let intervalId;
+        
+        if (isRunning) {
+            intervalId = setInterval(() => {
+                setSeconds(prevSeconds => prevSeconds + 1);
+            }, 1000);
+        }
+        
+        // Cleanup function - IMPORTANT!
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
+    }, [isRunning]);
+    
+    const formatTime = (totalSeconds) => {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    };
+    
+    const reset = () => {
+        setSeconds(0);
+        setIsRunning(false);
+    };
+    
+    return (
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+            <h2>{formatTime(seconds)}</h2>
+            <button onClick={() => setIsRunning(!isRunning)}>
+                {isRunning ? 'Pause' : 'Start'}
+            </button>
+            <button onClick={reset}>Reset</button>
+        </div>
+    );
+}
+```
+
+### Live Clock Component
+
+```jsx
+function LiveClock() {
+    const [time, setTime] = useState(new Date());
+    
+    useEffect(() => {
+        const updateTime = () => {
+            setTime(new Date());
+        };
+        
+        const intervalId = setInterval(updateTime, 1000);
+        
+        // Cleanup when component unmounts
+        return () => clearInterval(intervalId);
+    }, []);
+    
+    return (
+        <div style={{
+            fontSize: '2em',
+            fontFamily: 'monospace',
+            textAlign: 'center',
+            padding: '20px'
+        }}>
+            <div>{time.toLocaleDateString()}</div>
+            <div>{time.toLocaleTimeString()}</div>
+        </div>
+    );
+}
+```
+
+### Window Event Listeners
+
+```jsx
+function WindowInfo() {
+    const [windowSize, setWindowSize] = useState({
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
+    const [scrollY, setScrollY] = useState(window.scrollY);
+    
+    useEffect(() => {
+        const handleResize = () => {
+            setWindowSize({
+                width: window.innerWidth,
+                height: window.innerHeight
+            });
+        };
+        
+        const handleScroll = () => {
+            setScrollY(window.scrollY);
+        };
+        
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('scroll', handleScroll);
+        
+        // Cleanup - remove event listeners
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+    
+    return (
+        <div style={{
+            position: 'fixed',
+            top: '10px',
+            right: '10px',
+            background: 'rgba(0,0,0,0.8)',
+            color: 'white',
+            padding: '10px',
+            borderRadius: '5px'
+        }}>
+            <div>Window: {windowSize.width} × {windowSize.height}</div>
+            <div>Scroll: {scrollY}px</div>
+        </div>
+    );
+}
+```
+
+**Practice Exercise (15 minutes):**
+Create a pomodoro timer that counts down from 25 minutes and shows an alert when time's up.
+
+---
+
+## 5. Real Project - Weather App with API (60 minutes)
+
+Let's build a complete weather app that fetches real data:
+
+```jsx
+function WeatherApp() {
+    const [weather, setWeather] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [city, setCity] = useState('London');
+    const [favorites, setFavorites] = useState(['London', 'New York', 'Tokyo']);
+    
+    // Note: You'll need to get a free API key from OpenWeatherMap
+    const API_KEY = 'your-api-key-here'; // Replace with real API key
+    
+    const fetchWeather = async (cityName) => {
+        if (!cityName.trim()) return;
+        
+        setLoading(true);
+        setError(null);
+        
+        try {
+            // Using a mock API for demo - replace with real OpenWeatherMap API
+            const mockWeatherData = {
+                name: cityName,
+                main: {
+                    temp: Math.floor(Math.random() * 30) + 5,
+                    feels_like: Math.floor(Math.random() * 30) + 5,
+                    humidity: Math.floor(Math.random() * 100)
+                },
+                weather: [
+                    {
+                        main: ['Sunny', 'Cloudy', 'Rainy'][Math.floor(Math.random() * 3)],
+                        description: 'Pleasant weather'
+                    }
+                ],
+                wind: {
+                    speed: Math.floor(Math.random() * 20)
+                }
+            };
+            
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            setWeather(mockWeatherData);
+        } catch (err) {
+            setError('Failed to fetch weather data');
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    useEffect(() => {
+        fetchWeather(city);
+    }, []); // Fetch weather for default city on mount
+    
+    const handleCitySubmit = (e) => {
+        e.preventDefault();
+        fetchWeather(city);
+    };
+    
+    const addToFavorites = () => {
+        if (weather && !favorites.includes(weather.name)) {
+            setFavorites([...favorites, weather.name]);
+        }
+    };
+    
+    const removeFavorite = (cityToRemove) => {
+        setFavorites(favorites.filter(fav => fav !== cityToRemove));
+    };
+    
+    return (
+        <div style={{
+            maxWidth: '800px',
+            margin: '0 auto',
+            padding: '20px',
+            fontFamily: 'Arial, sans-serif'
+        }}>
+            <h1>🌤️ Weather App</h1>
+            
+            {/* Search Form */}
+            <form onSubmit={handleCitySubmit} style={{ marginBottom: '20px' }}>
+                <input 
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="Enter city name..."
+                    style={{ padding: '10px', marginRight: '10px', width: '200px' }}
+                />
+                <button type="submit" disabled={loading}>
+                    {loading ? 'Loading...' : 'Get Weather'}
+                </button>
+            </form>
+            
+            {/* Favorites */}
+            <div style={{ marginBottom: '20px' }}>
+                <h3>Favorite Cities:</h3>
+                {favorites.map(favCity => (
+                    <span key={favCity} style={{
+                        display: 'inline-block',
+                        margin: '5px',
+                        padding: '5px 10px',
+                        backgroundColor: '#e1f5fe',
+                        borderRadius: '15px',
+                        cursor: 'pointer'
+                    }}>
+                        <span onClick={() => { setCity(favCity); fetchWeather(favCity); }}>
+                            {favCity}
+                        </span>
+                        <button 
+                            onClick={() => removeFavorite(favCity)}
+                            style={{ marginLeft: '5px', background: 'none', border: 'none' }}
+                        >
+                            ×
+                        </button>
+                    </span>
+                ))}
+            </div>
+            
+            {/* Weather Display */}
+            {loading && (
+                <div style={{ textAlign: 'center', padding: '50px' }}>
+                    Loading weather data...
+                </div>
+            )}
+            
+            {error && (
+                <div style={{
+                    backgroundColor: '#ffebee',
+                    color: '#c62828',
+                    padding: '15px',
+                    borderRadius: '5px',
+                    marginBottom: '20px'
+                }}>
+                    {error}
+                </div>
+            )}
+            
+            {weather && !loading && (
+                <div style={{
+                    border: '2px solid #ddd',
+                    borderRadius: '10px',
+                    padding: '25px',
+                    backgroundColor: '#f8f9fa'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2>{weather.name}</h2>
+                        <button onClick={addToFavorites}>Add to Favorites</button>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div>
+                            <h3 style={{ fontSize: '3em', margin: '10px 0' }}>
+                                {weather.main.temp}°C
+                            </h3>
+                            <p style={{ fontSize: '1.2em' }}>{weather.weather[0].main}</p>
+                            <p>{weather.weather[0].description}</p>
+                        </div>
+                        
+                        <div>
+                            <p><strong>Feels like:</strong> {weather.main.feels_like}°C</p>
+                            <p><strong>Humidity:</strong> {weather.main.humidity}%</p>
+                            <p><strong>Wind Speed:</strong> {weather.wind.speed} m/s</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Current Time */}
+            <div style={{ marginTop: '30px', textAlign: 'center' }}>
+                <LiveClock />
+            </div>
+        </div>
+    );
+}
+
+// Include the LiveClock component from earlier
+function LiveClock() {
+    const [time, setTime] = useState(new Date());
+    
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            setTime(new Date());
+        }, 1000);
+        
+        return () => clearInterval(intervalId);
+    }, []);
+    
+    return (
+        <div style={{ fontSize: '1.2em', color: '#666' }}>
+            Last updated: {time.toLocaleTimeString()}
+        </div>
+    );
+}
+```
+
+---
+
+## Day 3 Morning Wrap-Up
+
+**What You Mastered:**
+✅ **useEffect Hook** - Handling side effects properly  
+✅ **API Fetching** - Getting data from external sources  
+✅ **Loading States** - Showing progress to users  
+✅ **Error Handling** - Gracefully handling failures  
+✅ **Timers & Cleanup** - Managing resources properly  
+✅ **Real-world App** - Complete weather application  
+
+**Key useEffect Patterns:**
+- **`useEffect(() => {}, [])`** - Run once on mount
+- **`useEffect(() => {})`** - Run on every render  
+- **`useEffect(() => {}, [dependency])`** - Run when dependency changes
+- **Cleanup function** - `return () => {}` prevents memory leaks
+
+**This Afternoon Preview:**
+We'll learn **conditional rendering patterns**, **React Router** for navigation, and **component composition patterns** to build multi-page applications.
+
+**Practice Tasks:**
+1. Get a real OpenWeatherMap API key and use real data
+2. Add a 5-day forecast to the weather app
+3. Create a news app that fetches articles from a news API
+
+**You're building real applications now!** useEffect completes your fundamental React toolkit - you can now fetch data, handle user interactions, and manage component lifecycles.
+
+
+
+
