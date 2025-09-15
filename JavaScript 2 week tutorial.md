@@ -2887,5 +2887,870 @@ We'll learn **conditional rendering patterns**, **React Router** for navigation,
 **You're building real applications now!** useEffect completes your fundamental React toolkit - you can now fetch data, handle user interactions, and manage component lifecycles.
 
 
+# React Crash Course - Day 3 Afternoon Session
+## Advanced Patterns and Routing - Building Real Apps (3-4 hours)
+
+### What You'll Learn This Afternoon
+- Advanced conditional rendering patterns
+- React Router for multi-page applications
+- Component composition and children prop
+- Context API for global state
+- Building a complete multi-page app
+
+---
+
+## 1. Advanced Conditional Rendering (45 minutes)
+
+### Multiple Conditions with Logical Operators
+
+```jsx
+function UserDashboard({ user, isLoading, error }) {
+    // Early returns for cleaner code
+    if (isLoading) {
+        return <div className="loading">Loading user data...</div>;
+    }
+    
+    if (error) {
+        return (
+            <div className="error">
+                <h2>Oops! Something went wrong</h2>
+                <p>{error}</p>
+                <button onClick={() => window.location.reload()}>Try Again</button>
+            </div>
+        );
+    }
+    
+    if (!user) {
+        return (
+            <div className="no-user">
+                <h2>Welcome!</h2>
+                <p>Please log in to view your dashboard.</p>
+                <button>Log In</button>
+            </div>
+        );
+    }
+    
+    // Main content when everything is good
+    return (
+        <div className="dashboard">
+            <h1>Welcome back, {user.name}!</h1>
+            
+            {/* Conditional sections */}
+            {user.isAdmin && (
+                <div className="admin-panel">
+                    <h3>Admin Panel</h3>
+                    <button>Manage Users</button>
+                    <button>View Reports</button>
+                </div>
+            )}
+            
+            {user.notifications?.length > 0 && (
+                <div className="notifications">
+                    <h3>Notifications ({user.notifications.length})</h3>
+                    {user.notifications.map(notif => (
+                        <div key={notif.id} className="notification">
+                            {notif.message}
+                        </div>
+                    ))}
+                </div>
+            )}
+            
+            {user.subscription === 'premium' ? (
+                <div className="premium-content">
+                    <h3>Premium Features</h3>
+                    <p>Enjoy your premium benefits!</p>
+                </div>
+            ) : (
+                <div className="upgrade-prompt">
+                    <h3>Upgrade to Premium</h3>
+                    <p>Unlock exclusive features!</p>
+                    <button>Upgrade Now</button>
+                </div>
+            )}
+        </div>
+    );
+}
+```
+
+### Switch-like Pattern with Objects
+
+```jsx
+function StatusIndicator({ status }) {
+    const statusConfig = {
+        loading: { 
+            color: '#ffa726', 
+            icon: '⏳', 
+            message: 'Processing...' 
+        },
+        success: { 
+            color: '#66bb6a', 
+            icon: '✅', 
+            message: 'Complete!' 
+        },
+        error: { 
+            color: '#ef5350', 
+            icon: '❌', 
+            message: 'Failed!' 
+        },
+        warning: { 
+            color: '#ffca28', 
+            icon: '⚠️', 
+            message: 'Attention needed' 
+        }
+    };
+    
+    const config = statusConfig[status] || statusConfig.error;
+    
+    return (
+        <div style={{
+            padding: '10px 15px',
+            backgroundColor: config.color + '20',
+            border: `2px solid ${config.color}`,
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+        }}>
+            <span style={{ fontSize: '1.2em' }}>{config.icon}</span>
+            <span>{config.message}</span>
+        </div>
+    );
+}
+
+function StatusDemo() {
+    const [status, setStatus] = useState('loading');
+    
+    const statuses = ['loading', 'success', 'error', 'warning'];
+    
+    return (
+        <div>
+            <StatusIndicator status={status} />
+            <br />
+            {statuses.map(s => (
+                <button key={s} onClick={() => setStatus(s)}>
+                    Set {s}
+                </button>
+            ))}
+        </div>
+    );
+}
+```
+
+### Render Props Pattern
+
+```jsx
+function DataFetcher({ url, render }) {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                setData({ message: `Data from ${url}`, timestamp: Date.now() });
+                setError(null);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchData();
+    }, [url]);
+    
+    return render({ data, loading, error });
+}
+
+// Usage
+function App() {
+    return (
+        <div>
+            <DataFetcher 
+                url="/api/users" 
+                render={({ data, loading, error }) => {
+                    if (loading) return <div>Loading users...</div>;
+                    if (error) return <div>Error: {error}</div>;
+                    return <div>Users data: {data?.message}</div>;
+                }}
+            />
+            
+            <DataFetcher 
+                url="/api/posts" 
+                render={({ data, loading, error }) => (
+                    <div>
+                        <h3>Posts</h3>
+                        {loading && <p>Loading...</p>}
+                        {error && <p>Error: {error}</p>}
+                        {data && <p>Posts: {data.message}</p>}
+                    </div>
+                )}
+            />
+        </div>
+    );
+}
+```
+
+---
+
+## 2. React Router - Multi-Page Applications (75 minutes)
+
+### Setting Up React Router (Simple CDN Version)
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multi-Page React App</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6/dist/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        nav { background: #333; padding: 15px; margin-bottom: 20px; }
+        nav a { color: white; text-decoration: none; margin-right: 20px; padding: 10px; }
+        nav a:hover { background: #555; }
+        nav a.active { background: #007bff; }
+        .container { max-width: 1200px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { BrowserRouter, Routes, Route, Link, useNavigate, useParams } = ReactRouterDOM;
+        
+        // Your React Router app goes here
+    </script>
+</body>
+</html>
+```
+
+### Basic Routing Setup
+
+```jsx
+function App() {
+    return (
+        <BrowserRouter>
+            <div className="container">
+                <Navigation />
+                <main>
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/products" element={<Products />} />
+                        <Route path="/products/:id" element={<ProductDetail />} />
+                        <Route path="/contact" element={<Contact />} />
+                        <Route path="*" element={<NotFound />} />
+                    </Routes>
+                </main>
+            </div>
+        </BrowserRouter>
+    );
+}
+
+function Navigation() {
+    return (
+        <nav>
+            <Link to="/">Home</Link>
+            <Link to="/about">About</Link>
+            <Link to="/products">Products</Link>
+            <Link to="/contact">Contact</Link>
+        </nav>
+    );
+}
+```
+
+### Page Components
+
+```jsx
+function Home() {
+    const navigate = useNavigate();
+    
+    return (
+        <div>
+            <h1>Welcome to Our Store</h1>
+            <p>Discover amazing products at great prices!</p>
+            <button onClick={() => navigate('/products')}>
+                Shop Now
+            </button>
+        </div>
+    );
+}
+
+function About() {
+    return (
+        <div>
+            <h1>About Us</h1>
+            <p>We are a company dedicated to providing quality products.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+                <div>
+                    <h3>Our Mission</h3>
+                    <p>To deliver excellent products and services to our customers.</p>
+                </div>
+                <div>
+                    <h3>Our Team</h3>
+                    <p>A group of passionate individuals working together.</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function Products() {
+    const navigate = useNavigate();
+    
+    const products = [
+        { id: 1, name: "Laptop", price: 999, category: "Electronics" },
+        { id: 2, name: "Phone", price: 599, category: "Electronics" },
+        { id: 3, name: "Headphones", price: 199, category: "Audio" },
+        { id: 4, name: "Tablet", price: 399, category: "Electronics" }
+    ];
+    
+    return (
+        <div>
+            <h1>Our Products</h1>
+            <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
+                gap: '20px' 
+            }}>
+                {products.map(product => (
+                    <div key={product.id} style={{
+                        border: '1px solid #ddd',
+                        borderRadius: '8px',
+                        padding: '15px',
+                        cursor: 'pointer'
+                    }} onClick={() => navigate(`/products/${product.id}`)}>
+                        <h3>{product.name}</h3>
+                        <p>Category: {product.category}</p>
+                        <p style={{ fontSize: '1.2em', fontWeight: 'bold' }}>
+                            ${product.price}
+                        </p>
+                        <button>View Details</button>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function ProductDetail() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    
+    const products = {
+        1: { name: "Laptop", price: 999, category: "Electronics", description: "High-performance laptop for work and gaming." },
+        2: { name: "Phone", price: 599, category: "Electronics", description: "Latest smartphone with advanced features." },
+        3: { name: "Headphones", price: 199, category: "Audio", description: "Premium noise-canceling headphones." },
+        4: { name: "Tablet", price: 399, category: "Electronics", description: "Portable tablet for productivity and entertainment." }
+    };
+    
+    const product = products[id];
+    
+    if (!product) {
+        return (
+            <div>
+                <h2>Product Not Found</h2>
+                <button onClick={() => navigate('/products')}>
+                    Back to Products
+                </button>
+            </div>
+        );
+    }
+    
+    return (
+        <div>
+            <button onClick={() => navigate('/products')}>
+                ← Back to Products
+            </button>
+            
+            <div style={{ marginTop: '20px' }}>
+                <h1>{product.name}</h1>
+                <p style={{ fontSize: '1.5em', color: '#007bff' }}>
+                    ${product.price}
+                </p>
+                <p><strong>Category:</strong> {product.category}</p>
+                <p>{product.description}</p>
+                
+                <div style={{ marginTop: '20px' }}>
+                    <button style={{ 
+                        backgroundColor: '#28a745', 
+                        color: 'white', 
+                        padding: '10px 20px',
+                        marginRight: '10px'
+                    }}>
+                        Add to Cart
+                    </button>
+                    <button>Add to Wishlist</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function Contact() {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        message: ''
+    });
+    const [submitted, setSubmitted] = useState(false);
+    
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setSubmitted(true);
+        setTimeout(() => setSubmitted(false), 3000);
+    };
+    
+    if (submitted) {
+        return (
+            <div style={{ textAlign: 'center', padding: '50px' }}>
+                <h2>Thank you for your message!</h2>
+                <p>We'll get back to you soon.</p>
+            </div>
+        );
+    }
+    
+    return (
+        <div>
+            <h1>Contact Us</h1>
+            <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
+                <div style={{ marginBottom: '15px' }}>
+                    <label>Name:</label>
+                    <input 
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        required
+                        style={{ width: '100%', padding: '8px' }}
+                    />
+                </div>
+                
+                <div style={{ marginBottom: '15px' }}>
+                    <label>Email:</label>
+                    <input 
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        required
+                        style={{ width: '100%', padding: '8px' }}
+                    />
+                </div>
+                
+                <div style={{ marginBottom: '15px' }}>
+                    <label>Message:</label>
+                    <textarea 
+                        value={formData.message}
+                        onChange={(e) => setFormData({...formData, message: e.target.value})}
+                        required
+                        rows="5"
+                        style={{ width: '100%', padding: '8px' }}
+                    />
+                </div>
+                
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+    );
+}
+
+function NotFound() {
+    const navigate = useNavigate();
+    
+    return (
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+            <h1>404 - Page Not Found</h1>
+            <p>The page you're looking for doesn't exist.</p>
+            <button onClick={() => navigate('/')}>
+                Go Home
+            </button>
+        </div>
+    );
+}
+```
+
+---
+
+## 3. Component Composition and Children (45 minutes)
+
+### Using the Children Prop
+
+```jsx
+// Layout components
+function Card({ title, children }) {
+    return (
+        <div style={{
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            marginBottom: '20px'
+        }}>
+            {title && (
+                <div style={{
+                    backgroundColor: '#f8f9fa',
+                    padding: '15px',
+                    borderBottom: '1px solid #ddd'
+                }}>
+                    <h3 style={{ margin: 0 }}>{title}</h3>
+                </div>
+            )}
+            <div style={{ padding: '15px' }}>
+                {children}
+            </div>
+        </div>
+    );
+}
+
+function Modal({ isOpen, onClose, children }) {
+    if (!isOpen) return null;
+    
+    return (
+        <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+        }}>
+            <div style={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                padding: '20px',
+                maxWidth: '500px',
+                width: '90%',
+                maxHeight: '80vh',
+                overflow: 'auto'
+            }}>
+                <button 
+                    onClick={onClose}
+                    style={{
+                        float: 'right',
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '1.5em',
+                        cursor: 'pointer'
+                    }}
+                >
+                    ×
+                </button>
+                <div style={{ clear: 'both' }}>
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Usage
+function CompositionDemo() {
+    const [modalOpen, setModalOpen] = useState(false);
+    
+    return (
+        <div>
+            <Card title="User Profile">
+                <p>Name: John Doe</p>
+                <p>Email: john@example.com</p>
+                <button onClick={() => setModalOpen(true)}>Edit Profile</button>
+            </Card>
+            
+            <Card title="Statistics">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div>
+                        <strong>Orders:</strong> 42
+                    </div>
+                    <div>
+                        <strong>Points:</strong> 1,234
+                    </div>
+                </div>
+            </Card>
+            
+            <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
+                <h2>Edit Profile</h2>
+                <form>
+                    <div>
+                        <label>Name:</label>
+                        <input type="text" defaultValue="John Doe" />
+                    </div>
+                    <br />
+                    <div>
+                        <label>Email:</label>
+                        <input type="email" defaultValue="john@example.com" />
+                    </div>
+                    <br />
+                    <button type="submit">Save Changes</button>
+                </form>
+            </Modal>
+        </div>
+    );
+}
+```
+
+---
+
+## 4. Context API - Global State (60 minutes)
+
+### Creating and Using Context
+
+```jsx
+// Create context
+const ThemeContext = React.createContext();
+const UserContext = React.createContext();
+
+// Theme provider
+function ThemeProvider({ children }) {
+    const [theme, setTheme] = useState('light');
+    
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    };
+    
+    const themeStyles = {
+        light: {
+            backgroundColor: '#ffffff',
+            color: '#333333'
+        },
+        dark: {
+            backgroundColor: '#333333',
+            color: '#ffffff'
+        }
+    };
+    
+    return (
+        <ThemeContext.Provider value={{ 
+            theme, 
+            toggleTheme, 
+            styles: themeStyles[theme] 
+        }}>
+            <div style={{ 
+                ...themeStyles[theme], 
+                minHeight: '100vh', 
+                padding: '20px' 
+            }}>
+                {children}
+            </div>
+        </ThemeContext.Provider>
+    );
+}
+
+// User provider
+function UserProvider({ children }) {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(false);
+    
+    const login = async (email, password) => {
+        setLoading(true);
+        // Simulate API call
+        setTimeout(() => {
+            setUser({
+                id: 1,
+                name: 'John Doe',
+                email: email,
+                isAdmin: email.includes('admin')
+            });
+            setLoading(false);
+        }, 1000);
+    };
+    
+    const logout = () => {
+        setUser(null);
+    };
+    
+    return (
+        <UserContext.Provider value={{ 
+            user, 
+            loading, 
+            login, 
+            logout 
+        }}>
+            {children}
+        </UserContext.Provider>
+    );
+}
+
+// Custom hooks for easier context usage
+function useTheme() {
+    const context = React.useContext(ThemeContext);
+    if (!context) {
+        throw new Error('useTheme must be used within ThemeProvider');
+    }
+    return context;
+}
+
+function useUser() {
+    const context = React.useContext(UserContext);
+    if (!context) {
+        throw new Error('useUser must be used within UserProvider');
+    }
+    return context;
+}
+
+// Components using context
+function Header() {
+    const { theme, toggleTheme } = useTheme();
+    const { user, logout } = useUser();
+    
+    return (
+        <header style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '15px 0',
+            borderBottom: '1px solid #ddd'
+        }}>
+            <h1>My App</h1>
+            <div>
+                <button onClick={toggleTheme}>
+                    {theme === 'light' ? '🌙' : '☀️'} Toggle Theme
+                </button>
+                {user && (
+                    <>
+                        <span style={{ margin: '0 15px' }}>
+                            Welcome, {user.name}!
+                        </span>
+                        <button onClick={logout}>Logout</button>
+                    </>
+                )}
+            </div>
+        </header>
+    );
+}
+
+function LoginForm() {
+    const { login, loading } = useUser();
+    const [formData, setFormData] = useState({ email: '', password: '' });
+    
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        login(formData.email, formData.password);
+    };
+    
+    return (
+        <form onSubmit={handleSubmit} style={{ maxWidth: '300px', margin: '50px auto' }}>
+            <h2>Login</h2>
+            <div style={{ marginBottom: '15px' }}>
+                <input 
+                    type="email"
+                    placeholder="Email (try admin@test.com)"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    required
+                    style={{ width: '100%', padding: '8px' }}
+                />
+            </div>
+            <div style={{ marginBottom: '15px' }}>
+                <input 
+                    type="password"
+                    placeholder="Password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    required
+                    style={{ width: '100%', padding: '8px' }}
+                />
+            </div>
+            <button type="submit" disabled={loading}>
+                {loading ? 'Logging in...' : 'Login'}
+            </button>
+        </form>
+    );
+}
+
+function Dashboard() {
+    const { user } = useUser();
+    const { styles } = useTheme();
+    
+    return (
+        <div style={styles}>
+            <h2>Dashboard</h2>
+            <p>Welcome to your dashboard, {user.name}!</p>
+            
+            {user.isAdmin && (
+                <div style={{
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    border: '1px solid #ffc107',
+                    padding: '15px',
+                    borderRadius: '5px'
+                }}>
+                    <h3>Admin Panel</h3>
+                    <p>You have admin privileges!</p>
+                </div>
+            )}
+            
+            <div style={{ marginTop: '20px' }}>
+                <h3>Your Stats</h3>
+                <ul>
+                    <li>Profile views: 42</li>
+                    <li>Posts: 15</li>
+                    <li>Followers: 128</li>
+                </ul>
+            </div>
+        </div>
+    );
+}
+
+// Main app with all providers
+function ContextApp() {
+    const { user } = useUser();
+    
+    return (
+        <div>
+            <Header />
+            <main>
+                {user ? <Dashboard /> : <LoginForm />}
+            </main>
+        </div>
+    );
+}
+
+// Final app with providers
+function App() {
+    return (
+        <ThemeProvider>
+            <UserProvider>
+                <ContextApp />
+            </UserProvider>
+        </ThemeProvider>
+    );
+}
+```
+
+---
+
+## Day 3 Afternoon Wrap-Up
+
+**What You Mastered:**
+✅ **Advanced Conditional Rendering** - Complex UI logic patterns  
+✅ **React Router** - Multi-page navigation and URL parameters  
+✅ **Component Composition** - Reusable layout components with children  
+✅ **Context API** - Global state management across components  
+✅ **Real Multi-Page App** - Complete application with routing and state  
+
+**Key Patterns Learned:**
+- **Early Returns** - Clean conditional rendering
+- **Object-based Conditionals** - Switch-like patterns
+- **URL Parameters** - Dynamic routing with useParams
+- **Global State** - Context for app-wide data
+- **Custom Hooks** - Reusable context logic
+
+**Tomorrow Preview:**
+We'll learn **custom hooks**, **performance optimization**, **form validation**, and **deployment** - completing your React journey to intermediate level!
+
+**Practice Tonight:**
+1. Add a shopping cart context to the e-commerce app
+2. Create a blog app with routing for individual posts
+3. Build a user settings page with theme preferences
+
+**You're building production-ready apps!** You now have all the tools to create complex, multi-page React applications with proper state management and navigation.
+
+
 
 
